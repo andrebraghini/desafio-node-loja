@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "experimentalDecorators": true,
+    "strictPropertyInitialization": false,
     "module": "commonjs",
     "noImplicitReturns": true,
     "noUnusedLocals": true,
@@ -11,5 +13,8 @@
   "compileOnSave": true,
   "include": [
     "src"
+  ],
+  "exclude": [
+    "src/**/*.spec.ts"
   ]
 }
