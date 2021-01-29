@@ -25,12 +25,12 @@ describe('PubSubService', () => {
             const pubsub = service['pubsub'];
 
             // Execute
-            const firstCall = pubsub();
-            const secondCall = pubsub();
+            const firstInstance = pubsub();
+            const secondInstance = pubsub();
 
             // Validate
-            expect(firstCall).toBeDefined();
-            expect(secondCall).toBe(firstCall);
+            expect(firstInstance).toBeDefined();
+            expect(secondInstance).toBe(firstInstance);
         });
     });
     
