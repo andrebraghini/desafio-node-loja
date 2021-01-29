@@ -18,7 +18,7 @@ export class ProductCtrl {
         private productRemovePubSub: ProductRemovePubSub,
     ) {}
 
-    @onRequest({ path: 'products', methods: ['PUT', 'PATCH'] })
+    @onRequest({ path: 'products' })
     async rest(request: Request, response: Response) {
         const id = request.path.split('/')[1];
         const methods: any = {
@@ -29,7 +29,7 @@ export class ProductCtrl {
             'DELETE': this.del,
         };
         const method = methods[request.method];
-        return method(request, response);
+        return method.apply(this, [request, response]);
     }
 
     private async post(request: Request, response: Response) {
@@ -51,8 +51,7 @@ export class ProductCtrl {
         response.status(204).send();
     }
 
-    @onRequest({ methods: 'GET' })
-    async get(request: Request, response: Response) {
+    private async get(request: Request, response: Response) {
         const id = request.path.split('/')[1];
         const product = id && await this.productService.get({ id });
 
@@ -68,8 +67,7 @@ export class ProductCtrl {
         response.json(product[0]);
     }
 
-    @onRequest({ methods: 'GET' })
-    async list(request: Request, response: Response) {
+    private async list(request: Request, response: Response) {
         const products = await this.productService.get(request.query);
         response.json(products);
     }
