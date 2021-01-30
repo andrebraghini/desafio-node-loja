@@ -6,9 +6,6 @@ describe('FirebaseService', () => {
     let service: FirebaseService;
 
     beforeAll(() => {
-        // Exemplo de mock de dependência
-        // container.register<MockClass>(MockClass, { useValue: mockInstance });
-
         service = container.resolve(FirebaseService);
     });
     
