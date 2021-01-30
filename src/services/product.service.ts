@@ -13,14 +13,17 @@ export interface ProductConditions {
     /** Nome do produto */
     name?: string;
 
+    /** Nome do campo para ordenação */
+    order?: string;
+
     /** Limite de registros no retorno */
-    limit?: number;
+    limit?: string;
 
     /**
-     * Número de registros para deslocar na consulta de
-     * forma a montar uma paginação correta.
+     * Código de identificação do documento última documento da página
+     * anterior para saltar.
      */
-    offset?: number;
+    startAfter?: string;
 }
 
 @singleton()
@@ -32,19 +35,49 @@ export class ProductService {
     ) {}
 
     /**
+     * Criar consulta no Firestore considerando condições de filtro, paginação e etc.
+     * 
+     * @param conditions Condições de filtro para consulta de produtos
+     */
+    private async createGetQuery(conditions?: ProductConditions) {
+        const limit = parseInt(conditions?.limit || '') || 0;
+        const col = this.firebase.firestore().collection('products');
+
+        let query = col.limit(limit);
+
+        // Ordenação da consulta
+        if (conditions?.order) {
+            const direction = conditions.order[0] === '-' ? 'desc' : 'asc';
+            const orderField = (direction === 'desc' ? conditions.order.substr(1) : conditions.order).trim().toLocaleLowerCase();
+            
+            if (['name', 'description', 'category', 'price'].indexOf(orderField) >= 0) {
+                query = query.orderBy(orderField, direction);
+            }
+        }
+
+        // Saltar registros anteriores para paginação
+        if (conditions?.startAfter) {
+            const snapshot = await this.firebase
+                .firestore()
+                .doc(`products/${conditions?.startAfter}`)
+                .get();
+            query = query.startAfter(snapshot);
+        }
+
+        return query.get();
+    }
+
+    /**
      * Retornar lista de produtos que atendam as condições informadas.
      * Retorna todos os registros se as condições não forem informadas.
      * 
      * @param condition Condições de filtro para consulta de produtos
      */
     async get(conditions?: ProductConditions): Promise<Product[]> {
-        const col = await this.firebase
-            .firestore()
-            .collection('products')
-            .get();
-
         const result: Product[] = [];
-        col.forEach(product => {
+
+        const data = await this.createGetQuery(conditions);
+        data.forEach(product => {
             const id = product.id;
             const data = product.data();
             result.push({ ...data, id });
