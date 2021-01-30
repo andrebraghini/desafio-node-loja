@@ -9,6 +9,12 @@ export interface ProductAddData {
     /** Nome do produto */
     name: string;
 
+    /** Descrição do produto */
+    description?: string;
+    
+    /** Categoria do produto */
+    category?: string;
+
     /** Preço do produto */
     price?: number
 
