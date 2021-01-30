@@ -6,20 +6,47 @@ import { ProductAddData, ProductAddPubSub } from '../pubsub/product-add.pubsub';
 import { ProductUpdateData, ProductUpdatePubSub } from '../pubsub/product-update.pubsub';
 import { ProductRemoveData, ProductRemovePubSub } from '../pubsub/product-remove.pubsub';
 import { ProductService } from '../services/product.service';
+import { AuthService } from '../services/auth.service';
 
 @singleton()
 @injectable()
 export class ProductCtrl {
 
     constructor(
+        private authService: AuthService,
         private productService: ProductService,
         private productAddPubSub: ProductAddPubSub,
         private productUpdatePubSub: ProductUpdatePubSub,
         private productRemovePubSub: ProductRemovePubSub,
     ) {}
 
+    private async validateRequest(request: Request, response: Response): Promise<boolean> {
+        if (request.method === 'GET') {
+            return true;
+        }
+        
+        const token = request.get('Authorization')?.replace(/^Bearer\s/, '');
+        const user: any = await this.authService.getUserByToken(token) || {};
+        const result = !!user.customClaims?.admin;
+
+        if (!result) {
+            response
+                .status(user.uid ? 403 : 401)
+                .json({
+                    success: false,
+                    msg: 'Access denied'
+                });
+        }
+
+        return result;
+    }
+
     @onRequest({ path: 'products' })
     async rest(request: Request, response: Response) {
+        if (!await this.validateRequest(request, response)) {
+            return;
+        }
+
         const id = request.path.split('/')[1];
         const methods: any = {
             'GET': id ? this.get : this.list,
