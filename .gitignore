@@ -19,3 +19,6 @@ lib/
 
 # Coverage directory
 coverage/
+
+# Local environment files
+.runtimeconfig.json
