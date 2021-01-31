@@ -11,9 +11,6 @@ export interface ProductConditions {
     /** Código de identificação do produto */
     id?: string;
 
-    /** Nome do produto */
-    name?: string;
-
     /** Nome do campo para ordenação */
     order?: string;
 
@@ -101,12 +98,22 @@ export class ProductService {
         }
 
         const result: Product[] = [];
-        const data = await this.createGetQuery(conditions);
-        data.forEach(product => {
-            const id = product.id;
-            const data = product.data();
-            result.push({ ...data, id });
-        });
+        if (conditions?.id) {
+            const doc = await this.firebase
+                .firestore()
+                .doc(`products/${conditions.id}`)
+                .get();
+            if (doc.exists) {
+                result.push({ ...doc.data(), id: doc.id });
+            }
+        } else {
+            const data = await this.createGetQuery(conditions);
+            data.forEach(product => {
+                const id = product.id;
+                const data = product.data();
+                result.push({ ...data, id });
+            });
+        }
 
         return result;
     }
