@@ -3,8 +3,6 @@ import { injectable, singleton } from 'tsyringe';
 import { FirebaseService } from './firebase.service';
 import * as jwt from 'jsonwebtoken';
 
-const JWT_SECRET = 'some_secret';
-
 @singleton()
 @injectable()
 export class AuthService {
@@ -31,7 +29,7 @@ export class AuthService {
      * @param data Dados utilizados no token
      */
     createToken(data: any): string {
-        return jwt.sign(data, JWT_SECRET);
+        return jwt.sign(data, this.firebase.config().auth.jwt_secret);
     }
 
     /**
@@ -42,7 +40,7 @@ export class AuthService {
     async getUserByToken(token?: string): Promise<UserRecord | undefined> {
         if (token) {
             try {
-                const data: any = jwt.verify(token, JWT_SECRET);
+                const data: any = jwt.verify(token, this.firebase.config().auth.jwt_secret);
                 const user = await this.firebase
                     .admin()
                     .auth()

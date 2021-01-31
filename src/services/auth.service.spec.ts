@@ -10,13 +10,15 @@ describe('AuthService', () => {
         admin: jest.fn(),
         auth: jest.fn(),
         getUser: jest.fn(),
-        getUserByEmail: jest.fn()
+        getUserByEmail: jest.fn(),
+        config: jest.fn(),
     };
 
     beforeEach(() => {
         jest.clearAllMocks();
         firebaseMock.admin.mockReturnThis();
         firebaseMock.auth.mockReturnThis();
+        firebaseMock.config.mockReturnValue({ auth: { jwt_secret: 'some_secret' } });
         
         service = container
             .register<FirebaseService>(FirebaseService, { useValue: firebaseMock as any })
