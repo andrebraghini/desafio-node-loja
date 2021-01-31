@@ -1,6 +1,7 @@
 import { injectable, singleton } from 'tsyringe';
 import { Product } from '../entity/product';
 import { FirebaseService } from './firebase.service';
+import { SearchService } from './search.service';
 
 /**
  * Condições de filtro para consulta de produtos
@@ -24,6 +25,9 @@ export interface ProductConditions {
      * anterior para saltar.
      */
     startAfter?: string;
+
+    /** Termo de pesquisa */
+    search?: string;
 }
 
 @singleton()
@@ -31,7 +35,8 @@ export interface ProductConditions {
 export class ProductService {
 
     constructor(
-        private firebase: FirebaseService
+        private firebase: FirebaseService,
+        private searchService: SearchService,
     ) {}
 
     /**
@@ -68,14 +73,34 @@ export class ProductService {
     }
 
     /**
+     * Retorna dados dos produtos de acordo com a pesquisa realizada.
+     * 
+     * @param condition Condições de filtro para consulta de produtos
+     */
+    private async getSearchData(conditions?: ProductConditions): Promise<Product[]> {
+        const search = await this.searchService
+            .index('products')
+            .search(conditions?.search || '');
+
+        return search.hits.map<Product>(item => {
+            const id = item.objectID;
+            const { name, description, category, price, imageURL } = item as any;
+            return { id, name, description, category, price, imageURL };
+        });
+    }
+
+    /**
      * Retornar lista de produtos que atendam as condições informadas.
      * Retorna todos os registros se as condições não forem informadas.
      * 
      * @param condition Condições de filtro para consulta de produtos
      */
     async get(conditions?: ProductConditions): Promise<Product[]> {
-        const result: Product[] = [];
+        if (conditions?.search) {
+            return this.getSearchData(conditions);
+        }
 
+        const result: Product[] = [];
         const data = await this.createGetQuery(conditions);
         data.forEach(product => {
             const id = product.id;
