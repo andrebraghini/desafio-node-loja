@@ -25,5 +25,7 @@ describe('FirebaseService', () => {
         });
     });
 
+    // TODO: Implementar testes do método config()
+
 });
   
