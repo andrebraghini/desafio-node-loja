@@ -11,6 +11,13 @@ export class AuthCtrl {
         private authService: AuthService
     ) {}
 
+    /**
+     * Retornar token de autenticação para executar as operações
+     * com controle de acesso.
+     * 
+     * @param request 
+     * @param response 
+     */
     @onRequest()
     async login(request: Request, response: Response) {
         const { email, password } = request.body;
